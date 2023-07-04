@@ -9,8 +9,11 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import environ
 from pathlib import Path
+
+env = environ.Env()
+environ.Env.read_env('.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-xg45c=f^#ygi((b70dqs+gty!a%x@fihcgo_r2@ct7vz*o49&f'
-
+SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG', cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -42,6 +44,8 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'rest_framework.authtoken',
     'game',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 
 ]
 
@@ -79,13 +83,28 @@ WSGI_APPLICATION = 'miracle.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
+# DATABASES = {
+#     'default':{
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME' : env('DB_NAME'),
+#         'USER': env('DB_USER'),
+#         'HOST': env('DB_HOST'),
+#         'PORT': env('DB_PORT'),
+#         'PASSWORD' : env('DB_PASSWORD')
+
+#     }
+# }
+
+DATABASES = {
+    'default': env.db()
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -138,5 +157,27 @@ REST_FRAMEWORK = {
 ),
 'DEFAULT_PERMISSION_CLASSES': (
     'rest_framework.permissions.IsAuthenticated',
-)
+),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
 }
+
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Miracle API's",
+    'DESCRIPTION': 'Miracle description',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+    # OTHER SETTINGS
+}
+
+EMAIL_BACKEND = env('EMAIL_BACKEND')
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env('EMAIL_PORT')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = env('EMAIL_USE_TLS', cast=bool)
+EMAIL_USER_SSL = env('EMAIL_USER_SSL',cast=bool)

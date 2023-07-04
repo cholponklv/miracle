@@ -1,9 +1,13 @@
+import random
 from django.db import models
 from django.contrib.auth.models import AbstractUser , AbstractBaseUser ,PermissionsMixin
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth.base_user import BaseUserManager
 # Create your models here.
 from game.models import Hero
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 
 class MyCustomUserManger(BaseUserManager):
@@ -31,14 +35,14 @@ class MyCustomUserManger(BaseUserManager):
 
 # Custom user model с помощью AbstractUser
 # class User(AbstractUser):
-    # email = models.EmailField(unique=True)
-    # date_birth = models.DateField(null=True, blank=True)
-    # photo = models.ImageField(upload_to='user/%Y/%m/%d', blank=True)
-    # phone_number = PhoneNumberField(null=True, blank = True, unique = True)
-    # USERNAME_FIELD = 'phone_number'
-    # REQUIRED_FIELDS = ['username', 'email']
-    # def __str__(self):
-    #     return str(self.phone_number)
+#     email = models.EmailField(unique=True)
+#     date_birth = models.DateField(null=True, blank=True)
+#     photo = models.ImageField(upload_to='user/%Y/%m/%d', blank=True)
+#     phone_number = PhoneNumberField(null=True, blank = True, unique = True)
+#     USERNAME_FIELD = 'phone_number'
+#     REQUIRED_FIELDS = ['username', 'email']
+#     def __str__(self):
+#         return str(self.phone_number)
     
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -53,6 +57,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     data_joined = models.DateTimeField(auto_now_add=True)
     balance = models.DecimalField(max_digits=10,decimal_places=2, default=0)
     favourites = models.ManyToManyField(Hero)
+    code = models.CharField(max_length=6,null = True,blank=True)
+    is_email_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['username', 'email', 'chat_id']
@@ -62,6 +68,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return str(self.phone_number)
     
+
+    def send_verification_code_to_email(self):
+        self.code = random.randint(100000,999999)
+        self.save()
+        message = f'Your verification code is {self.code}'
+        send_mail('Verification code', message, settings.EMAIL_HOST_USER,[self.email])
+
 
 
 

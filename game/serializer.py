@@ -12,17 +12,26 @@ class MapSerializer(serializers.ModelSerializer):
     class Meta:
         model = Map
         fields = ('name','describe')
+    
+class HeroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hero
+        fields = ('id','name','describe')
 
 class HeroTeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = HeroTeam
         fields = ('id','team', 'hero', 'is_captain')
 
+class TeamSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ('hero_team', )
 class TeamSerializer(serializers.ModelSerializer):
     hero_team = HeroTeamSerializer(many=True)
     class Meta:
         model = Team
-        fields = ('id','name', 'user','hero_team', 'amount', 'total_power', )
+        fields = ('id','name', 'user','hero_team', 'amount', 'total_power', 'heroes')
 
     def create(self, validated_data):
         hero_team = validated_data.pop('hero_team')
@@ -93,4 +102,12 @@ class TeamSerializer(serializers.ModelSerializer):
             bot.send_message(chat_id, message_text)
         team.save()
         return team
+
+class AddHeroSerializer(serializers.Serializer):
+    hero = serializers.PrimaryKeyRelatedField(queryset=Hero.objects.all())
+    is_captain = serializers.BooleanField()
+
+class DeleteHeroSerializer(serializers.Serializer):
+    hero = serializers.PrimaryKeyRelatedField(queryset=Hero.objects.all())
+
 
